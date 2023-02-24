@@ -1,40 +1,221 @@
 ---
-title: "Lab 07 - University of Edinburgh Art Collection"
-author: "Insert your name here"
-date: "Insert date here"
+title: "Lab 08 - University of Edinburgh Art Collection"
+author: "Cat Seitz"
+date: "02/23/2023"
 output: github_document
 ---
 
-### Load packages and data
+###Load packages and data
 
 ```{r load-packages, message = FALSE}
 library(tidyverse) 
 library(skimr)
+library(robotstxt)
+library(rvest)
+library(glue)
 ```
 
-```{r load-data, message = FALSE, eval = FALSE}
+
+###Getting Started
+
+```{r get-this}
+
+
+paths_allowed("https://collections.ed.ac.uk/art)")
+
+
+
+```
+
+```{r scrape-single-page}
+
+# set url
+first_url <- "https://collections.ed.ac.uk/art/search/*:*/Collection:%22edinburgh+college+of+art%7C%7C%7CEdinburgh+College+of+Art%22?offset=0"
+
+# read html page
+page <- read_html(first_url)
+
+```
+
+###Titles
+
+```{r nodes}
+
+#Why do these give the same result?
+
+page %>%
+  html_nodes(".record-title a") %>%
+  html_text() %>%
+  str_squish()
+
+titles<-page %>%
+  html_nodes(".iteminfo") %>%
+  html_node("h3 a") %>%
+  html_text() %>%
+  str_squish()
+
+```
+
+###Links
+
+```{r hyperlinks}
+  
+links<- page %>%
+  html_nodes(".iteminfo") %>%
+  html_node("h3 a") %>%
+  html_attr("href") %>%
+  str_replace("\\.", "https://collections.ed.ac.uk/art")
+
+```
+#Exercise 1
+
+The urls scraped were just the last part of the actual urls. So, I just added the first part, which stays consistent across links, to each art piece. It also has an unnecessary period, so I needed to remove that as well. 
+
+###Artists
+#Exercise 2
+
+```{r scrape-artists}
+artists<-page %>%
+  html_nodes(".iteminfo") %>%
+  html_node(".artist") %>%
+  html_text()
+
+```
+
+###Put it altogether
+#Exercise 3
+
+```{r tibble-it}
+
+first_ten <- tibble(
+  title = titles,
+  artist = artists,
+  link = links
+)
+
+```
+
+###Scrape the next page
+#Exercise 4
+
+```{r scrape-second-page}
+
+second_url<-"https://collections.ed.ac.uk/art/search/*:*/Collection:%22edinburgh+college+of+art%7C%7C%7CEdinburgh+College+of+Art%22?offset=10"
+
+page <- read_html(second_url)
+
+titles<-page %>%
+  html_nodes(".iteminfo") %>%
+  html_node("h3 a") %>%
+  html_text() %>%
+  str_squish()
+
+artists<-page %>%
+  html_nodes(".iteminfo") %>%
+  html_node(".artist") %>%
+  html_text()
+
+links<- page %>%
+  html_nodes(".iteminfo") %>%
+  html_node("h3 a") %>%
+  html_attr("href") %>%
+  str_replace("\\.", "https://collections.ed.ac.uk/art")
+
+second_ten <- tibble(
+  title = titles,
+  artist = artists,
+  link = links
+)
+
+```
+
+###Functions
+#Exercise 5
+Wrote the function scrape_page in the R script file. 
+
+```{r, include=FALSE}
+
+source("02-scrape-page-function.R", local = knitr::knit_global())
+
+```
+
+#Exercise 6
+I ran the script for the scrape_page function and then ran the function in the console and it worked! Results were what I was expecting!
+
+###Iteration
+#Exercise 7
+
+```{r create-urls}
+
+root <- "https://collections.ed.ac.uk/art/search/*:*/Collection:%22edinburgh+college+of+art%7C%7C%7CEdinburgh+College+of+Art%22?offset="
+numbers <- seq(from = 0, to = 2900, by = 10)
+urls <- glue("{root}{numbers}")
+
+```
+
+###Mapping
+#Exercise 8
+
+```{r iteration}
+
+uoe_art<-map_dfr(urls, scrape_page)
+
+```
+
+###Write out data
+# Exercise 9
+
+```{r write-out}
+
+write_csv(uoe_art, file= "data/uoe-art.csv")
+
+```
+
+###Analysis
+#Exercise 10
+
+
+```{r load-data, message = FALSE, eval = TRUE}
 # Remove eval = FALSE or set it to TRUE once data is ready to be loaded
 uoe_art <- read_csv("data/uoe-art.csv")
 ```
-
-### Exercise 9
 
 ```{r separate-title-date, error = TRUE}
 uoe_art <- uoe_art %>%
   separate(title, into = c("title", "date"), sep = "\\(") %>%
   mutate(year = str_remove(date, "\\)") %>% as.numeric()) %>%
-  select(title, artist, year, ___)
+  select(title, artist, year, link)
+```
+The warnings tell us that extra information that wasn't the year was discarded and that rows without dates are given an NA value. 
+
+#Exercise 11
+
+```{r summary}
+
+skim(uoe_art)
+
 ```
 
-### Exercise 10
+111 pieces have the artist missing and 1384 have the year missing. 
 
-Remove this text, and add your answer for Exercise 10 here.
-Add code chunks as needed.
-Don't forget to label your code chunk.
-Do not use spaces in code chunk labels.
 
-### Exercise 11
+#Exercise 12
 
-...
+```{r histogram}
 
-Add exercise headings as needed.
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
