@@ -203,11 +203,54 @@ skim(uoe_art)
 
 ```{r histogram}
 
+uoe_art %>%
+  ggplot(aes(x=year))+
+  geom_histogram(binwidth = 5)
 
 ```
 
+One of the years was 0 -- this is probably not right.
 
+#Exercise 13
 
+```{r correct-error}
+
+filter(uoe_art, year<1000)
+
+uoe_art[uoe_art==2]<- 1964
+
+```
+
+Our code didn't capture the correct information because there was another parentheses before the actual year with the number 2, which should've been included in the title.  
+
+```{r check_correction}
+
+uoe_art %>%
+  ggplot(aes(x=year))+
+  geom_histogram(binwidth = 2, color = "blue", fill="lightblue")+
+  labs(title = "Number of Pieces in Edinburgh College of Art Collection by Year",
+       x="Year", y="Count")
+
+```
+
+Correction worked!
+
+#Exercise 14
+
+```{r most-common-artist}
+
+common_artist<- uoe_art %>% group_by(artist) %>% 
+  summarise(total_count=n(),
+            .groups = 'drop')
+
+common_artist <- common_artist[order(common_artist$total_count,decreasing=TRUE),]
+
+head(common_artist, 10)
+```
+
+As seen above, if we ignore unknown artists, then the most commonly featured artist in this collection is Emma Gillies. This is possibly because she was a famous local artist or donated her portfolio to the university when she died. I have never heard of her. Upon discussion with Professor Google, I learned that Emma Gillies was a Scottish potter and in 2016 a bunch of her ceramics were found and put on show at the University of Edinburgh. 
+
+#Exercise 15
 
 
 
