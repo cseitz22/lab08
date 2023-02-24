@@ -252,13 +252,17 @@ As seen above, if we ignore unknown artists, then the most commonly featured art
 
 #Exercise 15
 
+```{r find-child}
+
+filter(uoe_art, grepl("Child", title, ignore.case = TRUE))
+
+```
+
+```{r find-child-2.0}
+
+str_detect(uoe_art$title, regex("child", ignore_case=TRUE))
+
+```
 
 
-
-
-
-
-
-
-
-
+Looks like there are only 9 pieces with "child" in the title. 
