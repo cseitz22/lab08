@@ -265,4 +265,4 @@ str_detect(uoe_art$title, regex("child", ignore_case=TRUE))
 ```
 
 
-Looks like there are only 9 pieces with "child" in the title. 
+Looks like there are only 9 pieces with "child" in the title. Turns out all of them are capitalized so the ignore case didn't real do anything.
